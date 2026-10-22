@@ -1,0 +1,384 @@
+{
+  "account": {
+    "Account_Name": "Test Realty Pvt Ltd",
+    "Industry": "Real Estate",
+    "Phone": "+91 80 4000 1234",
+    "Website": "https://testrealty.example.com",
+    "Billing_City": "Bengaluru",
+    "Billing_State": "Karnataka",
+    "Billing_Country": "India",
+    "Description": "Seed account for the Presentation Builder widget (45 Property Options, 2 Contacts)."
+  },
+  "contacts": [
+    {
+      "First_Name": "Asha",
+      "Last_Name": "Menon",
+      "Title": "Head of Acquisitions",
+      "Email": "asha.menon@testrealty.example.com",
+      "Phone": "+91 98450 11111"
+    },
+    {
+      "First_Name": "Vikram",
+      "Last_Name": "Rao",
+      "Title": "Investment Manager",
+      "Email": "vikram.rao@testrealty.example.com",
+      "Phone": "+91 98450 22222"
+    }
+  ],
+  "properties": [
+    {
+      "Name": "Whitefield Apartment 01",
+      "Location": "Whitefield, Bengaluru",
+      "Price": 3237000,
+      "Area": 763,
+      "Type": "Apartment"
+    },
+    {
+      "Name": "Koramangala Villa 02",
+      "Location": "Koramangala, Bengaluru",
+      "Price": 3974000,
+      "Area": 876,
+      "Type": "Villa"
+    },
+    {
+      "Name": "Indiranagar Plot 03",
+      "Location": "Indiranagar, Bengaluru",
+      "Price": 4711000,
+      "Area": 989,
+      "Type": "Plot"
+    },
+    {
+      "Name": "HSR Layout Commercial 04",
+      "Location": "HSR Layout, Bengaluru",
+      "Price": 5448000,
+      "Area": 1102,
+      "Type": "Commercial"
+    },
+    {
+      "Name": "Hebbal Apartment 05",
+      "Location": "Hebbal, Bengaluru",
+      "Price": 6185000,
+      "Area": 1215,
+      "Type": "Apartment"
+    },
+    {
+      "Name": "Sarjapur Road Villa 06",
+      "Location": "Sarjapur Road, Bengaluru",
+      "Price": 6922000,
+      "Area": 1328,
+      "Type": "Villa"
+    },
+    {
+      "Name": "Escape test <b>x</b>",
+      "Location": "Electronic City, Bengaluru",
+      "Price": 7659000,
+      "Area": 1441,
+      "Type": "Plot"
+    },
+    {
+      "Name": "Yelahanka Commercial 08",
+      "Location": "Yelahanka, Bengaluru",
+      "Price": 8396000,
+      "Area": 1554,
+      "Type": "Commercial"
+    },
+    {
+      "Name": "JP Nagar Apartment 09",
+      "Location": "JP Nagar, Bengaluru",
+      "Price": 9133000,
+      "Area": 1667,
+      "Type": "Apartment"
+    },
+    {
+      "Name": "Whitefield Villa 10",
+      "Location": "Whitefield, Bengaluru",
+      "Price": 9870000,
+      "Area": 1780,
+      "Type": "Villa"
+    },
+    {
+      "Name": "Koramangala Plot 11",
+      "Location": "Koramangala, Bengaluru",
+      "Price": 10607000,
+      "Area": 1893,
+      "Type": "Plot"
+    },
+    {
+      "Name": "Indiranagar Commercial 12",
+      "Location": "Indiranagar, Bengaluru",
+      "Price": 11344000,
+      "Area": 2006,
+      "Type": "Commercial"
+    },
+    {
+      "Name": "HSR Layout Apartment 13",
+      "Location": "HSR Layout, Bengaluru",
+      "Price": 3081000,
+      "Area": 2119,
+      "Type": "Apartment"
+    },
+    {
+      "Name": "Hebbal Villa 14",
+      "Location": "Hebbal, Bengaluru",
+      "Price": 3818000,
+      "Area": 2232,
+      "Type": "Villa"
+    },
+    {
+      "Name": "Sarjapur Road Plot 15",
+      "Location": "Sarjapur Road, Bengaluru",
+      "Price": 4555000,
+      "Area": 2345,
+      "Type": "Plot"
+    },
+    {
+      "Name": "Electronic City Commercial 16",
+      "Location": "Electronic City, Bengaluru",
+      "Price": 5292000,
+      "Area": 2458,
+      "Type": "Commercial"
+    },
+    {
+      "Name": "Yelahanka Apartment 17",
+      "Location": "Yelahanka, Bengaluru",
+      "Price": 6029000,
+      "Area": 2571,
+      "Type": "Apartment"
+    },
+    {
+      "Name": "JP Nagar Villa 18",
+      "Location": "JP Nagar, Bengaluru",
+      "Price": 6766000,
+      "Area": 2684,
+      "Type": "Villa"
+    },
+    {
+      "Name": "Whitefield Plot 19",
+      "Location": "Whitefield, Bengaluru",
+      "Price": 7503000,
+      "Area": 2797,
+      "Type": "Plot"
+    },
+    {
+      "Name": "Koramangala Commercial 20",
+      "Location": "Koramangala, Bengaluru",
+      "Price": 8240000,
+      "Area": 2910,
+      "Type": "Commercial"
+    },
+    {
+      "Name": "Indiranagar Apartment 21",
+      "Location": "Indiranagar, Bengaluru",
+      "Price": 8977000,
+      "Area": 3023,
+      "Type": "Apartment"
+    },
+    {
+      "Name": "HSR Layout Villa 22",
+      "Location": "HSR Layout, Bengaluru",
+      "Price": 9714000,
+      "Area": 736,
+      "Type": "Villa"
+    },
+    {
+      "Name": "Hebbal Plot 23",
+      "Location": "Hebbal, Bengaluru",
+      "Price": 10451000,
+      "Area": 849,
+      "Type": "Plot"
+    },
+    {
+      "Name": "Sarjapur Road Commercial 24",
+      "Location": "Sarjapur Road, Bengaluru",
+      "Price": 11188000,
+      "Area": 962,
+      "Type": "Commercial"
+    },
+    {
+      "Name": "Electronic City Apartment 25",
+      "Location": "Electronic City, Bengaluru",
+      "Price": 2925000,
+      "Area": 1075,
+      "Type": "Apartment"
+    },
+    {
+      "Name": "Yelahanka Villa 26",
+      "Location": "Yelahanka, Bengaluru",
+      "Price": 3662000,
+      "Area": 1188,
+      "Type": "Villa"
+    },
+    {
+      "Name": "JP Nagar Plot 27",
+      "Location": "JP Nagar, Bengaluru",
+      "Price": 4399000,
+      "Area": 1301,
+      "Type": "Plot"
+    },
+    {
+      "Name": "Whitefield Commercial 28",
+      "Location": "Whitefield, Bengaluru",
+      "Price": 5136000,
+      "Area": 1414,
+      "Type": "Commercial"
+    },
+    {
+      "Name": "Koramangala Apartment 29",
+      "Location": "Koramangala, Bengaluru",
+      "Price": 5873000,
+      "Area": 1527,
+      "Type": "Apartment"
+    },
+    {
+      "Name": "Indiranagar Villa 30",
+      "Location": "Indiranagar, Bengaluru",
+      "Price": 6610000,
+      "Area": 1640,
+      "Type": "Villa"
+    },
+    {
+      "Name": "HSR Layout Plot 31",
+      "Location": "HSR Layout, Bengaluru",
+      "Price": 7347000,
+      "Area": 1753,
+      "Type": "Plot"
+    },
+    {
+      "Name": "Hebbal Commercial 32",
+      "Location": "Hebbal, Bengaluru",
+      "Price": 8084000,
+      "Area": 1866,
+      "Type": "Commercial"
+    },
+    {
+      "Name": "Sarjapur Road Apartment 33",
+      "Location": "Sarjapur Road, Bengaluru",
+      "Price": 8821000,
+      "Area": 1979,
+      "Type": "Apartment"
+    },
+    {
+      "Name": "Electronic City Villa 34",
+      "Location": "Electronic City, Bengaluru",
+      "Price": 9558000,
+      "Area": 2092,
+      "Type": "Villa"
+    },
+    {
+      "Name": "Yelahanka Plot 35",
+      "Location": "Yelahanka, Bengaluru",
+      "Price": 10295000,
+      "Area": 2205,
+      "Type": "Plot"
+    },
+    {
+      "Name": "JP Nagar Commercial 36",
+      "Location": "JP Nagar, Bengaluru",
+      "Price": 11032000,
+      "Area": 2318,
+      "Type": "Commercial"
+    },
+    {
+      "Name": "Whitefield Apartment 37",
+      "Location": "Whitefield, Bengaluru",
+      "Price": 2769000,
+      "Area": 2431,
+      "Type": "Apartment"
+    },
+    {
+      "Name": "Koramangala Villa 38",
+      "Location": "Koramangala, Bengaluru",
+      "Price": 3506000,
+      "Area": 2544,
+      "Type": "Villa"
+    },
+    {
+      "Name": "Indiranagar Plot 39",
+      "Location": "Indiranagar, Bengaluru",
+      "Price": 4243000,
+      "Area": 2657,
+      "Type": "Plot"
+    },
+    {
+      "Name": "HSR Layout Commercial 40",
+      "Location": "HSR Layout, Bengaluru",
+      "Price": 4980000,
+      "Area": 2770,
+      "Type": "Commercial"
+    },
+    {
+      "Name": "Hebbal Apartment 41",
+      "Location": "Hebbal, Bengaluru",
+      "Price": 5717000,
+      "Area": 2883,
+      "Type": "Apartment"
+    },
+    {
+      "Name": "Sarjapur Road Villa 42",
+      "Location": "Sarjapur Road, Bengaluru",
+      "Price": 6454000,
+      "Area": 2996,
+      "Type": "Villa"
+    },
+    {
+      "Name": "Electronic City Plot 43",
+      "Location": "Electronic City, Bengaluru",
+      "Price": 7191000,
+      "Area": 709,
+      "Type": "Plot"
+    },
+    {
+      "Name": "Yelahanka Commercial 44",
+      "Location": "Yelahanka, Bengaluru",
+      "Price": 7928000,
+      "Area": 822,
+      "Type": "Commercial"
+    },
+    {
+      "Name": "JP Nagar Apartment 45",
+      "Location": "JP Nagar, Bengaluru",
+      "Price": 8665000,
+      "Area": 935,
+      "Type": "Apartment"
+    }
+  ],
+  "templates": [
+    {
+      "Name": "Temp1",
+      "Slide_Title": "Introduction",
+      "Slide_HTML": "<h1 style=\"color:#1f4e79;text-align:center\">#Account_Name$</h1>\n<p style=\"text-align:center\"><i>Property portfolio prepared by #Owner.name$</i></p>\n<ul>\n<li><b>Industry:</b> #Industry$</li>\n<li><b>City:</b> #Billing_City$</li>\n<li><b>Phone:</b> #Phone$</li>\n<li><b>Website:</b> #Website$</li>\n</ul>",
+      "Module_Name": "Accounts",
+      "Slide_Order": 1
+    },
+    {
+      "Name": "Temp1",
+      "Slide_Title": "Property Listings",
+      "Slide_HTML": "<h2 style=\"color:#1f4e79\">Property Listings for #Account.Account_Name$</h2>\n<table border=\"1\" style=\"width:100%;border-collapse:collapse\">\n<tr style=\"background-color:#1f4e79;color:#ffffff\"><th>S.No</th><th>Property</th><th>Location</th><th>Type</th><th>Area (sq ft)</th><th>Price</th></tr>\n#RowCountIterator\n<tr><td>#Sno$</td><td>#Name$</td><td>#Location$</td><td>#Type$</td><td>#Area$</td><td>#Price$</td></tr>\n$RowCountIterator\n</table>",
+      "Limit_of_Rows": 20,
+      "Module_Name": "Property_Options",
+      "Slide_Order": 2
+    },
+    {
+      "Name": "Temp1",
+      "Slide_Title": "Contact Details",
+      "Slide_HTML": "<h2 style=\"color:#1f4e79\">Contact Details</h2>\n<p>Your contacts at #Account.Account_Name$:</p>\n<table border=\"1\" style=\"width:100%;border-collapse:collapse\">\n<tr style=\"background-color:#1f4e79;color:#ffffff\"><th>S.No</th><th>Name</th><th>Title</th><th>Email</th><th>Phone</th></tr>\n#RowCountIterator\n<tr><td>#Sno$</td><td>#Full_Name$</td><td>#Title$</td><td>#Email$</td><td>#Phone$</td></tr>\n$RowCountIterator\n</table>",
+      "Module_Name": "Contacts",
+      "Slide_Order": 3
+    },
+    {
+      "Name": "Temp2",
+      "Slide_Title": "Account Summary",
+      "Slide_HTML": "<h1 style=\"color:#7a3e00\">#Account_Name$ at a glance</h1>\n<p>#Description$</p>\n<p><b>Owner:</b> #Owner.name$ &nbsp; <b>City:</b> #Billing_City$</p>",
+      "Module_Name": "Accounts",
+      "Slide_Order": 1
+    },
+    {
+      "Name": "Temp2",
+      "Slide_Title": "Shortlist",
+      "Slide_HTML": "<h2 style=\"color:#7a3e00\">Shortlist</h2>\n<table border=\"1\" style=\"width:100%;border-collapse:collapse\">\n<tr style=\"background-color:#7a3e00;color:#ffffff\"><th>#</th><th>Property</th><th>Price</th></tr>\n#RowCountIterator\n<tr><td>#Sno$</td><td>#Name$</td><td>#Price$</td></tr>\n$RowCountIterator\n</table>",
+      "Limit_of_Rows": 10,
+      "Module_Name": "Property_Options",
+      "Slide_Order": 2
+    }
+  ]
+}
