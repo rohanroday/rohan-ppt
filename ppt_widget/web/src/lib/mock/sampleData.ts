@@ -71,6 +71,12 @@ export const mockSource: DataSource = {
         .map((a) => ({ id: String(a.id), name: String(a.Account_Name), secondary: [a.Billing_City, OWNER.name].filter(Boolean).join(" · ") })),
     );
   },
+  suggestAccounts: () =>
+    delay(
+      accounts
+        .slice(0, 20)
+        .map((a) => ({ id: String(a.id), name: String(a.Account_Name), secondary: [a.Billing_City, OWNER.name].filter(Boolean).join(" · ") })),
+    ),
   getAccount: (id) => {
     const a = accounts.find((x) => x.id === id);
     return a ? delay(a) : Promise.reject(new Error("The selected Account no longer exists."));

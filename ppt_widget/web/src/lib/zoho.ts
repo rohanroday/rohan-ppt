@@ -18,6 +18,8 @@ export interface DataSource {
   init(): Promise<{ userName: string }>;
   listTemplates(): Promise<TemplateRow[]>;
   searchAccounts(query: string): Promise<AccountSummary[]>;
+  /** Most recently modified Accounts, shown when the search box is focused before typing. */
+  suggestAccounts(): Promise<AccountSummary[]>;
   getAccount(id: string): Promise<CrmRecord>;
   getRelated(accountId: string, module: string): Promise<CrmRecord[]>;
   getFormatContext(modules: string[]): Promise<FormatContext>;
@@ -126,11 +128,12 @@ const crmSource: DataSource = {
     const q = query.replace(/[()\\,]/g, " ").trim();
     if (q.length < 2) return [];
     const resp = await sdk().CRM.API.searchRecord({ Entity: "Accounts", Type: "word", Query: q, page: 1, per_page: 20 });
-    return records(resp).slice(0, 20).map((r) => ({
-      id: String(r.id),
-      name: String(r.Account_Name ?? "(no name)"),
-      secondary: [r.Billing_City, (r.Owner as { name?: string } | null)?.name].filter(Boolean).join(" · ") || undefined,
-    }));
+    return records(resp).slice(0, 20).map(toAccountSummary);
+  },
+
+  async suggestAccounts() {
+    const resp = await sdk().CRM.API.getAllRecords({ Entity: "Accounts", page: 1, per_page: 20, sort_by: "Modified_Time", sort_order: "desc" });
+    return records(resp).slice(0, 20).map(toAccountSummary);
   },
 
   async getAccount(id) {
@@ -184,6 +187,14 @@ const crmSource: DataSource = {
     records(resp); // throws on API error
   },
 };
+
+function toAccountSummary(r: CrmRecord): AccountSummary {
+  return {
+    id: String(r.id),
+    name: String(r.Account_Name ?? "(no name)"),
+    secondary: [r.Billing_City, (r.Owner as { name?: string } | null)?.name].filter(Boolean).join(" · ") || undefined,
+  };
+}
 
 function toTemplateRow(r: CrmRecord): TemplateRow {
   const num = (v: unknown) => (typeof v === "number" ? v : v === null || v === undefined || v === "" ? null : Number(v));
