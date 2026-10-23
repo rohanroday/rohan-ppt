@@ -11,7 +11,7 @@ const CREATED = "2026-10-22T16:51:10+05:30";
 const TEST_ACCOUNT_ID = "mock-acc-1";
 
 const accounts: CrmRecord[] = [
-  { id: TEST_ACCOUNT_ID, Owner: OWNER, Created_Time: CREATED, ...seed.account },
+  { id: TEST_ACCOUNT_ID, Owner: OWNER, Created_Time: CREATED, Logo: [{ file_Id: "mock-logo" }], ...seed.account },
   // Sample accounts with no Property Options or Contacts (AC-9).
   ...["Benton (Sample)", "Chanay (Sample)", "Chemel (Sample)", "King (Sample)"].map((name, i) => ({
     id: `mock-acc-${i + 2}`,
@@ -32,6 +32,8 @@ const related: Record<string, Record<string, CrmRecord[]>> = {
       id: `mock-po-${i + 1}`,
       Owner: OWNER,
       Account: { id: TEST_ACCOUNT_ID, name: seed.account.Account_Name },
+      // Mock-only Image Upload field. Row 5 has no photo, to show the "empty field" warning.
+      Photo: i === 4 ? [] : [{ file_Id: `mock-photo-${(i % 3) + 1}` }],
       ...p,
     })),
     Contacts: seed.contacts.map((c, i) => ({
@@ -54,6 +56,50 @@ const templates: TemplateRow[] = seed.templates.map((t, i) => ({
   Slide_Order: t.Slide_Order,
   Created_Time: CREATED,
 }));
+
+// Mock-only template that uses pictures (the Demo org has no image fields yet). Each <img> stands alone
+// because the exporter only places pictures that are not inside a paragraph or table cell (OI-10).
+templates.push(
+  {
+    id: "mock-tpl-img-1",
+    Name: "Temp3-Images",
+    Slide_Title: "Introduction",
+    Slide_HTML: `<img src="#Logo$" width="120">\n<h1>#Account_Name$</h1>\n<p>#Industry$ · #Billing_City$</p>`,
+    Limit_of_Rows: null,
+    Module_Name: "Accounts",
+    Slide_Order: 1,
+    Created_Time: CREATED,
+  },
+  {
+    id: "mock-tpl-img-2",
+    Name: "Temp3-Images",
+    Slide_Title: "Property Gallery",
+    Slide_HTML:
+      `<h2>Property Gallery for #Account.Account_Name$</h2>\n#RowCountIterator\n<img src="#Photo$" width="120">\n<p><b>#Name$</b> — #Location$, #Price$</p>\n$RowCountIterator`,
+    Limit_of_Rows: 4,
+    Module_Name: "Property_Options",
+    Slide_Order: 2,
+    Created_Time: CREATED,
+  },
+);
+
+const PICTURE_COLOURS = ["#1f4e79", "#2e7d32", "#b26a00", "#6a1b9a"];
+
+/** A plain coloured picture with the file id on it, drawn in the browser (no binary assets needed). */
+function mockPicture(fileId: string): Promise<string> {
+  const canvas = document.createElement("canvas");
+  canvas.width = 480;
+  canvas.height = 320;
+  const g = canvas.getContext("2d");
+  if (!g) return Promise.reject(new Error("canvas is not available"));
+  g.fillStyle = PICTURE_COLOURS[(Number(fileId.replace(/\D/g, "")) || 0) % PICTURE_COLOURS.length];
+  g.fillRect(0, 0, 480, 320);
+  g.fillStyle = "#ffffff";
+  g.font = "bold 32px sans-serif";
+  g.textAlign = "center";
+  g.fillText(fileId, 240, 170);
+  return delay(canvas.toDataURL("image/png"));
+}
 
 const delay = <T,>(value: T, ms = 150) => new Promise<T>((r) => setTimeout(() => r(value), ms));
 
@@ -81,6 +127,7 @@ export const mockSource: DataSource = {
     const a = accounts.find((x) => x.id === id);
     return a ? delay(a) : Promise.reject(new Error("The selected Account no longer exists."));
   },
+  getImage: mockPicture,
   getRelated: (accountId, module) => delay(related[accountId]?.[module] ?? []),
   getFormatContext: () =>
     delay({
@@ -88,8 +135,8 @@ export const mockSource: DataSource = {
       currencySymbol: "₹",
       locale: "en-IN",
       fieldTypes: {
-        Accounts: { Account_Name: "text", Description: "textarea", Website: "website", Billing_City: "text", Industry: "picklist", Phone: "phone" },
-        Property_Options: { Price: "currency", Area: "double", Name: "text", Location: "text", Type: "picklist" },
+        Accounts: { Account_Name: "text", Description: "textarea", Website: "website", Billing_City: "text", Industry: "picklist", Phone: "phone", Logo: "imageupload" },
+        Property_Options: { Price: "currency", Area: "double", Name: "text", Location: "text", Type: "picklist", Photo: "imageupload" },
         Contacts: { Full_Name: "text", Title: "text", Email: "email", Phone: "phone" },
       },
     }),

@@ -48,6 +48,7 @@ Talking points and a demo script for a 5–10 minute project update.
 - On overflow slides, should the table header repeat? (It does now.)
 - Should it work for other records later, such as Deals, or only Accounts?
 - Which users or profiles should get the Web Tab?
+- Images: where do customers keep the pictures that go into decks (CRM image fields, attachments, web links)? I'm asking Parth for a real customer template and a generated deck to check this. *(Request not sent yet.)*
 
 ---
 

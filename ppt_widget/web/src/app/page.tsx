@@ -5,6 +5,7 @@ import { AccountSearch } from "@/components/AccountSearch";
 import { SlidePreview } from "@/components/SlidePreview";
 import { WarningsPanel } from "@/components/WarningsPanel";
 import { buildPptx } from "@/lib/htmlToPptx";
+import { resolveImages } from "@/lib/imageResolver";
 import { buildDeck, deckFileName, groupTemplates, relatedModules } from "@/lib/templateEngine";
 import type { CrmRecord, GeneratedSlide, GenerationWarning, Template } from "@/lib/types";
 import { connect, describeError, type AccountSummary, type DataSource } from "@/lib/zoho";
@@ -84,7 +85,9 @@ export default function Page() {
       ]);
       const related: Record<string, CrmRecord[]> = {};
       for (const entry of relatedLists) if (entry) related[entry[0]] = entry[1];
-      const out = buildDeck({ template, account: record, related, format });
+      const built = buildDeck({ template, account: record, related, format });
+      const pictures = await resolveImages(built.slides, source.getImage); // FR-25
+      const out = { slides: pictures.slides, warnings: [...built.warnings, ...pictures.warnings] };
       setDeck({ ...out, account: { ...account, name: String(record.Account_Name ?? account.name) }, templateName: template.name });
       setIndex(0);
       if (failures.length) setNotice({ kind: "error", text: `${failures.join(" ")} The other slides were generated.` });

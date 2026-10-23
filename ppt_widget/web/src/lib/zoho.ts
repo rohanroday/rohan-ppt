@@ -4,6 +4,7 @@
 // The vendored SDK always defines window.ZOHO, so "inside CRM" is detected by
 // running in an iframe, not by the SDK being present.
 
+import { fileToImageDataUrl } from "./imageData";
 import { mockSource } from "./mock/sampleData";
 import type { CrmRecord, FieldTypes, FormatContext, TemplateRow } from "./types";
 
@@ -21,6 +22,8 @@ export interface DataSource {
   /** Most recently modified Accounts, shown when the search box is focused before typing. */
   suggestAccounts(): Promise<AccountSummary[]>;
   getAccount(id: string): Promise<CrmRecord>;
+  /** Downloads a CRM Image Upload / File Upload file as a picture data URL (FR-25). */
+  getImage(fileId: string): Promise<string>;
   getRelated(accountId: string, module: string): Promise<CrmRecord[]>;
   getFormatContext(modules: string[]): Promise<FormatContext>;
   attachFile(accountId: string, fileName: string, file: Blob): Promise<void>;
@@ -47,6 +50,8 @@ interface ZohoSdk {
       searchRecord(p: Record<string, unknown>): Promise<ApiResponse>;
       getRelatedRecords(p: Record<string, unknown>): Promise<ApiResponse>;
       attachFile(p: Record<string, unknown>): Promise<ApiResponse>;
+      /** Returns the file itself (Blob or bytes), not the usual { data } envelope. Check against the SDK reference (OI-8). */
+      getFile(p: { id: string }): Promise<unknown>;
     };
     CONFIG: {
       getCurrentUser(): Promise<{ users?: { full_name?: string; date_format?: string; locale?: string }[] }>;
@@ -140,6 +145,10 @@ const crmSource: DataSource = {
     const rec = records(await sdk().CRM.API.getRecord({ Entity: "Accounts", RecordID: id }))[0];
     if (!rec) throw new Error("The selected Account no longer exists.");
     return rec;
+  },
+
+  async getImage(fileId) {
+    return fileToImageDataUrl(await sdk().CRM.API.getFile({ id: fileId }));
   },
 
   async getRelated(accountId, module) {

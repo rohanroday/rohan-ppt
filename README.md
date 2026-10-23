@@ -27,6 +27,7 @@ A **template** is every record in **Presentation Templates** that has the same *
 | `#Account.Account_Name$` | Always the selected Account, on any slide |
 | `#RowCountIterator` … `$RowCountIterator` | The text between the markers repeats once per related record |
 | `#Sno$` | Row number 1, 2, 3 … inside the repeated block (continues across overflow slides) |
+| `<img src="#Photo$">` | A picture from a CRM Image Upload / File Upload field (first file). Works on Accounts slides and per row inside the repeated block. Put each `<img>` on its own line, not inside a `<p>`, heading or table cell, or it won't be exported to the .pptx. A missing or unreadable picture is left out with a warning. |
 
 Notes:
 - Use **API names**, which are case-sensitive (Setup → Developer Hub → APIs → API names).

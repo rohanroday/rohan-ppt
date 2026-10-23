@@ -15,6 +15,7 @@ import type {
   Template,
   TemplateRow,
 } from "./types";
+import { fileRef } from "./imageResolver";
 
 const PLACEHOLDER = /#([A-Za-z0-9_.]+)\$/g; // T10: anything else is left as-is
 const ITERATOR = /#RowCountIterator([\s\S]*?)\$RowCountIterator/g;
@@ -86,6 +87,7 @@ function formatDate(y: string, m: string, d: string, pattern?: string): string {
 /** T9: turns a CRM value into display text (not yet escaped). */
 export function formatValue(value: unknown, fieldType: string | undefined, ctx: FormatContext = {}): string {
   if (value === null || value === undefined) return "";
+  if (fieldType === "imageupload" || fieldType === "fileupload") return fileRef(value); // T12
   if (typeof value === "boolean") return value ? "Yes" : "No";
   if (Array.isArray(value)) {
     return value.map((v) => formatValue(v, undefined, ctx)).filter(Boolean).join(", ");

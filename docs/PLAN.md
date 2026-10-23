@@ -218,3 +218,10 @@ Housekeeping: `next build` also writes a small `ppt_widget/.next/build` folder (
 - `next dev` never hydrated because of `assetPrefix: "./"`. It now applies only to production builds (static export still uses relative paths; re-verified the built widget).
 - Connecting no longer waits for `PageLoad` (a Web Tab doesn't need it) and times out after 8 s. In a frame that isn't on a Zoho site (e.g. an editor preview pane), it falls back to mock data with a notice; inside Zoho a timeout shows an error.
 - Repacked `dist/ppt_widget.zip`.
+
+### 2026-10-23 — Phase 5 (new): images from CRM + customer reference deck
+Mentor feedback: (1) let template slides pull pictures from CRM into placeholders; (2) get one real customer's PowerPoint template and a deck generated from it from **Parth**, and base the layout on those. SRS is now v1.1 (T11–T13, FR-25–FR-29, D7–D8, AC-10–AC-12, OI-7–OI-9, §2.7).
+
+Design: authors write `<img src="#Field$">`. For Image Upload / File Upload fields the engine emits a `crmfile:<file_Id>` reference; a resolve step (`web/src/lib/imageResolver.ts`) downloads each unique file once through `ZOHO.CRM.API.getFile`, scales it down to 1280 px, and rewrites `src` to a data URL before preview and export. Failures drop the `<img>` and add a warning.
+
+Open: the Parth request is drafted but not yet sent (OI-7); where the customer's pictures live, and whether `getFile` returns a Blob inside a widget, are untested in CRM (OI-8). The Demo org has no image fields yet (D7/D8 not created); mock mode demonstrates the feature with generated pictures.

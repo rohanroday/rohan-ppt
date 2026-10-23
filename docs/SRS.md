@@ -3,11 +3,15 @@
 
 | | |
 |---|---|
-| Version | 1.0 (draft) |
-| Date | 2026-10-22 |
+| Version | 1.1 (draft) |
+| Date | 2026-10-23 |
 | Author | Rohan |
 | Status | For review |
 | Related | [PLAN.md](PLAN.md) |
+
+**Changes in 1.1** (after review feedback from the mentor):
+- Templates can now include **images pulled from CRM** (T11–T13, FR-25–FR-29, AC-10, AC-11).
+- The design will be checked against a **real customer's template and a deck generated from it** (§2.7, AC-12, OI-7). Those files are to be requested from Parth and have not been received, so anything that depends on them is marked as open.
 
 ---
 
@@ -24,12 +28,13 @@ The system has two parts:
 - **Web Tab widget**: an HTML/JS app embedded in Zoho CRM. In the widget a user:
   1. selects an Account record
   2. selects a template
-  3. generates slides filled with that Account's data
+  3. generates slides filled with that Account's data, both text and images
   4. previews the slides
   5. downloads them as an editable `.pptx` file
 
 Out of scope for v1:
 - editing slides inside the widget
+- cropping, editing or uploading images in the widget (pictures come from CRM as they are, only scaled down if very large)
 - PDF export
 - template versioning
 - multi-language templates
@@ -45,6 +50,9 @@ Out of scope for v1:
 | Iterator block | Markup between `#RowCountIterator` and `$RowCountIterator`. It repeats once per related record. |
 | Row limit | The maximum number of iterator rows on one slide. Extra rows continue on new slides. |
 | Overflow slide | An extra slide created when the rows exceed the row limit. |
+| Image placeholder | An `<img>` tag in the slide HTML whose `src` is a placeholder, e.g. `<img src="#Photo$">`. It is replaced by the picture stored in that CRM field. |
+| Image field | A CRM field that holds a picture or file: Image Upload or File Upload. The value is a file ID, not a web address. |
+| Reference deck | A real customer's PowerPoint template together with one finished deck generated from it. Used to check that the widget's output matches what customers actually use (§2.7). |
 | Web Tab | A Zoho CRM top-level navigation tab that hosts a widget. |
 | ZET | Zoho Extension Toolkit, the command-line tool for scaffolding, running, validating and packing widgets. |
 | MCP | Model Context Protocol. Zoho-hosted MCP servers let Claude Code read and modify CRM metadata and records during development. |
@@ -56,6 +64,7 @@ Out of scope for v1:
 - Zoho CRM skill for AI agents: https://github.com/zoho/crm-skills
 - PptxGenJS: https://github.com/gitbrent/PptxGenJS
 - Original task brief (from the mentor), restated in Section 8.
+- Customer reference deck (template plus generated output), to be requested from Parth: see §2.7 and OI-7.
 
 ---
 
@@ -84,8 +93,9 @@ Development time only: Claude Code ─► Zoho CRM MCP servers ─► CRM metada
 2. Search for and select an Account.
 3. Fetch the Account, its Property Options and its Contacts.
 4. Render each slide definition, including iterator expansion and overflow pagination.
-5. Preview the slides.
-6. Export an editable `.pptx` file and download it, or attach it to the Account.
+5. Download the pictures that image placeholders point to and put them into the slides.
+6. Preview the slides.
+7. Export an editable `.pptx` file and download it, or attach it to the Account.
 
 ### 2.3 User classes
 
@@ -113,7 +123,7 @@ Development time only: Claude Code ─► Zoho CRM MCP servers ─► CRM metada
 
 ### 2.5 Design and implementation constraints
 - **C1:** The widget is a Next.js static export (no server-side rendering or API routes), packed with ZET and hosted internally in CRM as an uploaded ZIP.
-- **C2:** The widget makes no third-party network calls at runtime. All libraries, including PptxGenJS, are bundled in the package. The only outside traffic is Zoho's own: the vendored SDK loads a further script from a URL CRM supplies, and the SDK calls CRM APIs.
+- **C2:** The widget makes no third-party network calls at runtime. All libraries, including PptxGenJS, are bundled in the package. The only outside traffic is Zoho's own: the vendored SDK loads a further script from a URL CRM supplies, and the SDK calls CRM APIs. Pictures from CRM fields are downloaded through the SDK, so they stay inside this rule. A template may also point `<img>` at an ordinary web address. That is best effort only: the browser may block it (CORS), and then the picture is left out with a warning (T13).
 - **C6:** The package must pass `zet validate`: folder names use only letters, digits, `_`, `-` and `$`; only allowed file types (e.g. html, js, css, png, svg, woff2; not `.ico`) are included; the entry page is `app/widget.html`.
 - **C3:** All CRM access uses the JS SDK, so it respects the user's role and profile.
 - **C4:** CRM API calls consume the org's API credits.
@@ -123,6 +133,17 @@ Development time only: Claude Code ─► Zoho CRM MCP servers ─► CRM metada
 - **A1:** Property Options has a lookup to Accounts, and Contacts are linked to Accounts through the standard Account lookup.
 - **A2:** Template admins can write basic HTML: headings, paragraphs, lists, tables and images.
 - **A3:** The org's data centre (.in, .com, etc.) supports the Zoho MCP servers used during development.
+- **A4:** The modules that supply pictures (e.g. Property Options, Accounts) have an Image Upload or File Upload field, and the user's profile can read those files.
+- **A5:** The customer's template and generated deck (from Parth, once received) show the real target layout. Until they arrive, the sample templates (Temp1, Temp2) stand in for it.
+
+### 2.7 Customer reference deck
+The mentor asked that the solution be based on a real customer's deck, not only on our own sample templates. Parth is to be asked for one customer's PowerPoint template and one deck generated from it (OI-7). The two files are used like this:
+1. **Find the structure.** Count the slides, see which parts are fixed text, which come from CRM, and which repeat per record.
+2. **Write the matching templates.** Turn each slide into one Presentation Template record, with placeholders (T1–T13), row limits and a Module Name.
+3. **Find the images.** Note which pictures are in the deck and where they come from in CRM (OI-8).
+4. **Compare the result.** Generate the deck for the same Account and compare it with the sample output (AC-12). Text, tables, data, order and pictures must match. Fonts, colours and exact positions may differ slightly (NFR-U3).
+
+If the sample needs something the widget cannot do yet (for example a slide master, speaker notes or charts), it is added to OI-7 and discussed with the mentor, not silently dropped.
 
 ---
 
@@ -163,6 +184,18 @@ Create this module only if it does not already exist.
 - **Accounts:** read the selected record.
 - **Contacts:** read through the Account's Contacts related list.
 
+### 3.4 Image fields (new in 1.1)
+Pictures reach a slide through an Image Upload or File Upload field on the module that supplies the slide's data.
+
+| # | Where | Field | Type | Notes |
+|---|---|---|---|---|
+| D7 | Property Options | Photo (`Photo`) | Image Upload | One picture per property. To be created in the Demo org before the feature is tested there. |
+| D8 | Accounts | Logo (`Logo`) | Image Upload | Optional. Shown on the introduction slide. |
+
+- The value CRM returns for these fields is a file ID. The widget downloads the file by that ID (FR-25).
+- Zoho's built-in *Record Image* (profile image) field uses a different download path. Support for it is not promised in v1 and is part of OI-8.
+- The field names above are proposals. The real names come from the customer's data (OI-8).
+
 ---
 
 ## 4. Template Language Specification
@@ -179,6 +212,9 @@ Create this module only if it does not already exist.
 | T8 | Values are HTML-escaped before substitution. |
 | T9 | Formatting rules: null or missing values render as an empty string; dates use the user's CRM date format if available, otherwise ISO; currency uses the org currency symbol if available; picklists render their display value; booleans render "Yes" or "No". |
 | T10 | Text that looks like a placeholder but does not match the pattern `#[A-Za-z0-9_.]+\$` is left unchanged. |
+| T11 | **Image placeholder.** `<img src="#Field$">` shows the picture stored in that field. It works on Accounts slides and inside an iterator, where each row gets its own picture. `width` and `height` attributes on the `<img>` are honoured; if they are missing the picture keeps its own proportions and is fitted to the slide. In v1 the `<img>` must sit on its own, not inside a paragraph, heading, list item or table cell: pictures placed there are not exported (OI-10). |
+| T12 | If the field is an Image Upload or File Upload field, the placeholder resolves to the first file in it. If the field holds ordinary text, such as a web address, that text is used as the picture's address (see C2). |
+| T13 | If a picture cannot be shown (empty field, no permission, file missing, not a picture, download failed), the `<img>` is removed from that slide and a warning names the slide and the field. The rest of the slide is produced as normal. |
 
 Example:
 ```html
@@ -189,6 +225,16 @@ Example:
   <tr><td>#Sno$</td><td>#Name$</td><td>#Location$</td><td>#Price$</td></tr>
   $RowCountIterator
 </table>
+```
+
+Example with pictures (each property shows its photo above its details; the Account logo sits at the top). Each `<img>` is on its own line:
+```html
+<img src="#Account.Logo$" width="120">
+<h1>Properties</h1>
+#RowCountIterator
+<img src="#Photo$" width="120">
+<p><b>#Name$</b>, #Location$, #Price$</p>
+$RowCountIterator
 ```
 
 ---
@@ -224,6 +270,15 @@ Priority: **M** = Must, **S** = Should, **C** = Could.
 | FR-14 | Missing fields, unknown placeholders and extra iterators are collected as warnings and shown with the preview. They do not stop generation. | S |
 | FR-15 | A fetch error (permission, network or API limit) shows a readable message and leaves the UI usable. | M |
 
+### 5.3a Images (new in 1.1)
+| ID | Requirement | Pri |
+|---|---|---|
+| FR-25 | After the slides are generated, every image placeholder (T11) that points to a CRM file is replaced by the real picture, downloaded through the JS SDK. | M |
+| FR-26 | Each unique file is downloaded once per generation, at most 4 at a time, and at most 50 files per generation. Files beyond the limit are skipped with a warning. | M |
+| FR-27 | A picture whose longest side is over 1280 px is scaled down before it goes into the preview and the file, so the `.pptx` stays small. | S |
+| FR-28 | A picture that cannot be loaded is left out and reported as a warning (T13). Generation never stops because of an image. | M |
+| FR-29 | The preview and the exported `.pptx` show the same pictures. In the `.pptx` each picture is a native picture object that can be moved, resized or replaced. | M |
+
 ### 5.4 Preview
 | ID | Requirement | Pri |
 |---|---|---|
@@ -235,7 +290,7 @@ Priority: **M** = Must, **S** = Should, **C** = Could.
 | ID | Requirement | Pri |
 |---|---|---|
 | FR-19 | Download produces a `.pptx` file in 16:9 layout with one PowerPoint slide per generated slide. | M |
-| FR-20 | Export converts HTML into native, editable PowerPoint objects: `h1`–`h3`, `p` and `li` become text boxes, `table` becomes a native table, `img` becomes an image. Supported styles are bold, italic, underline, font colour, background colour, text alignment and font size. | M |
+| FR-20 | Export converts HTML into native, editable PowerPoint objects: `h1`–`h3`, `p` and `li` become text boxes, `table` becomes a native table, `img` becomes an image (including pictures from CRM fields, FR-25). Supported styles are bold, italic, underline, font colour, background colour, text alignment and font size. | M |
 | FR-21 | HTML elements that are not supported are exported as plain text, without failing. | M |
 | FR-22 | The file is named `<Account Name> - <Template Name> - <YYYY-MM-DD>.pptx`, with characters that are invalid in file names removed. | S |
 | FR-23 | "Save to Account" attaches the generated `.pptx` to the selected Account's Attachments. | S |
@@ -264,6 +319,7 @@ The UI must be usable at widths of 1024 px and above. It follows Zoho CRM's look
 | Account details | `ZOHO.CRM.API.getRecord({Entity:"Accounts", RecordID})` |
 | Related data | `ZOHO.CRM.API.getRelatedRecords({Entity:"Accounts", RecordID, RelatedList:<related list API name>, page, per_page})` |
 | Attach file | `ZOHO.CRM.API.attachFile({Entity:"Accounts", RecordID, File:{Name, Content}})` |
+| Download a picture or file | `ZOHO.CRM.API.getFile({id: <file ID from the field>})`. The name, parameters and return type are to be confirmed against the SDK reference and tested inside CRM (OI-8). |
 
 The exact parameter names must be checked against the current SDK reference during development.
 
@@ -278,8 +334,8 @@ The exact parameter names must be checked against the current SDK reference duri
 | ID | Category | Requirement |
 |---|---|---|
 | NFR-P1 | Performance | The widget is interactive within 3 s of opening the Web Tab on a normal connection. |
-| NFR-P2 | Performance | For a template of 3 slide definitions and 50 related records, generation plus preview finishes within 5 s. Export finishes within 5 s. |
-| NFR-P3 | Performance | API calls per generation are at most 1 + 1 per related module + extra pages. No per-row calls. |
+| NFR-P2 | Performance | For a template of 3 slide definitions and 50 related records, generation plus preview finishes within 5 s. Export finishes within 5 s. With 20 pictures of up to 1 MB each, generation plus preview finishes within 10 s. |
+| NFR-P3 | Performance | API calls per generation are at most 1 + 1 per related module + extra pages. No per-row calls, except one download per unique picture (FR-26, at most 50). |
 | NFR-S1 | Security | All CRM values are HTML-escaped before rendering (T8). |
 | NFR-S2 | Security | Preview containers block scripts and isolate template HTML from the widget. |
 | NFR-S3 | Security | The widget only reads what the user's CRM profile allows, and stores no data outside CRM. |
@@ -306,6 +362,8 @@ The exact parameter names must be checked against the current SDK reference duri
 | 2. User picks the record; Generate PPT button; template choice (Temp1, Temp2) | FR-03, FR-06–FR-09 |
 | 3. Pull the record's data and generate slides from the template and business rules | FR-10–FR-14 |
 | 4. Preview and download | FR-16–FR-24 |
+| Mentor feedback: pull images from CRM and place them in the template's placeholders | T11–T13, FR-25–FR-29, D7–D8, AC-10, AC-11 |
+| Mentor feedback: base the solution on a real customer's template and generated deck (from Parth) | §2.7, A5, AC-12, OI-7, OI-8 |
 
 ---
 
@@ -322,6 +380,9 @@ The exact parameter names must be checked against the current SDK reference duri
 | AC-7 | Save to Account. | The `.pptx` appears in the Account's Attachments. |
 | AC-8 | The user lacks read access to Property Options. | A clear permission error appears and the rest of the UI still works. |
 | AC-9 | Account with zero Property Options. | The Property Listings slide shows a "No records" row. |
+| AC-10 | A template slide has `<img src="#Photo$">` in a Property Options iterator, and 3 of the properties have a photo. | Those 3 rows show their own picture in the preview. In the downloaded `.pptx` they are native pictures that can be selected and resized. |
+| AC-11 | One property's photo is missing, or the user cannot read the file. | That picture is left out, a warning names the slide and field, and the rest of the deck is generated. |
+| AC-12 | Generate the reference deck's template (§2.7) for the same Account as the sample output from Parth. | Same number of slides and order. Text, table data and pictures match the sample. Fonts, colours and exact positions may differ slightly. |
 
 ---
 
@@ -335,3 +396,7 @@ The exact parameter names must be checked against the current SDK reference duri
 | OI-4 | The Limit of Rows semantics are confirmed as "continue on new slides". Confirm with the mentor whether overflow slides should repeat the table header. | Default: yes, repeat. |
 | OI-5 | Should the main record ever be something other than an Account (e.g. Deals)? | v1 supports Accounts only. The design allows extension. |
 | OI-6 | Which CRM org and data centre is the target? | Confirm before Phase 1 when connecting the MCP servers. |
+| OI-7 | Customer reference deck: ask Parth for one customer's PowerPoint template and one generated deck. Request drafted 2026-10-23; not yet sent or received. | Rohan sends the request, then waits on Parth. When the files arrive, follow §2.7 and update templates, requirements and AC-12. Slide layout fidelity decisions (slide master, fonts, image positions) are blocked until then. |
+| OI-8 | Where do the customer's pictures live: CRM Image Upload fields, Attachments, the Record Image field, or web addresses? Does `getFile` return a Blob inside a widget? | Ask Parth with the files. Meanwhile v1 supports Image Upload and File Upload fields. Test `getFile` in CRM with a real field before relying on it. Other sources are added only if the customer needs them. |
+| OI-10 | The exporter only places pictures that stand on their own. A picture inside a paragraph, heading, list item or table cell (for example a photo column in a table, or a logo beside a title) is dropped from the `.pptx`; the preview shows it. | Found while implementing 1.1. Decide after seeing the reference deck (OI-7) whether to support side-by-side layouts and pictures in table cells. For now templates keep each `<img>` on its own line (T11). |
+| OI-9 | Picture size and speed: is a 1280 px limit and 50 pictures per generation right for the customer's decks? | Defaults as in FR-26 and FR-27. Adjust after measuring with the reference deck. |
