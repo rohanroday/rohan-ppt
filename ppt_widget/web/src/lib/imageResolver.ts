@@ -18,7 +18,8 @@ export function fileRef(value: unknown): string {
   const first = Array.isArray(value) ? value[0] : value;
   if (!first || typeof first !== "object") return "";
   const o = first as Record<string, unknown>;
-  const id = o.file_Id ?? o.File_Id ?? o.fileId ?? o.id;
+  // API v8 names it File_Id__s; older versions use file_Id. `id` is the attachment row, not the file, so it is not used.
+  const id = o.File_Id__s ?? o.file_Id ?? o.File_Id ?? o.fileId;
   return typeof id === "string" || typeof id === "number" ? `${FILE_REF_PREFIX}${id}` : "";
 }
 

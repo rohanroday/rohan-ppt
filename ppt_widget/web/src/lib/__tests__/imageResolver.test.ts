@@ -10,6 +10,12 @@ describe("fileRef", () => {
   it("reads the first file id of an Image Upload value", () => {
     expect(fileRef([{ file_Id: "abc123", File_Name: "a.png" }, { file_Id: "zzz" }])).toBe("crmfile:abc123");
   });
+  it("reads the real CRM API v8 shape, ignoring the attachment row id", () => {
+    expect(fileRef([{ File_Id__s: "h34loc8e193b", File_Name__s: "a.png", id: "7644593000000773034" }])).toBe("crmfile:h34loc8e193b");
+  });
+  it("does not use the attachment row id when there is no file id", () => {
+    expect(fileRef([{ id: "7644593000000773034" }])).toBe("");
+  });
   it("returns empty for no file", () => {
     expect(fileRef([])).toBe("");
     expect(fileRef(null)).toBe("");
