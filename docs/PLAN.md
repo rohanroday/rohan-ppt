@@ -167,7 +167,7 @@ Findings that change the plan:
 - **Zoho SDK is vendored** at `web/public/vendor/ZohoEmbededAppSDK.min.js`, but it loads one more script from a URL CRM supplies, so "no external calls" became "no third-party calls" (SRS C2).
 - **Outside-CRM detection:** the vendored SDK always defines `window.ZOHO`, so "ZOHO missing" can't be the mock-mode switch. Use `window.parent === window` (or a `?mock=1` flag) instead.
 
-Still to do for the spike: upload `dist/ppt_widget.zip` as an internal-hosting widget (index page `/widget.html`), add it to a Web Tab, and confirm it shows the CRM user's name.
+Still to do for the spike: upload `dist/ppt_widget.zip` as an internal-hosting widget (index page `/app/widget.html`: the zip holds `app/widget.html`; `/widget.html` gives "We could not reach this page"), add it to a Web Tab, and confirm it shows the CRM user's name.
 
 Housekeeping for git: ignore `node_modules/`, `web/.next/`, `web/out/`, `app/` (generated), `dist/`, `cert.pem`, `key.pem`, and `.mcp.json`.
 

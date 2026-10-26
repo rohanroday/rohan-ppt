@@ -12,6 +12,8 @@ export interface TemplateRow {
   Module_Name: string;
   Slide_Order: number | null;
   Created_Time?: string;
+  /** Image/File Upload value. When set, the template is a real .pptx file filled by the widget, not HTML. */
+  Template_File?: unknown;
 }
 
 /** All slide definitions that share a Template Name, in deck order. */

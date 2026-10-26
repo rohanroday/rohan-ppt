@@ -10,6 +10,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "jszip": "^3.10.2",
     "next": "16.4.2",
     "pptxgenjs": "^4.0.1",
     "react": "19.3.0",

@@ -55,6 +55,11 @@ async function normalise(dataUrl: string, mime: string): Promise<string> {
   return mime === "image/jpeg" ? canvas.toDataURL("image/jpeg", 0.85) : canvas.toDataURL("image/png");
 }
 
+/** The raw bytes of whatever `ZOHO.CRM.API.getFile` returns (used for the .pptx template). */
+export async function fileToBytes(file: unknown): Promise<Uint8Array> {
+  return new Uint8Array(await (await toBlob(file)).arrayBuffer());
+}
+
 /** `file` is whatever `ZOHO.CRM.API.getFile` returns (Blob, bytes or a Response). */
 export async function fileToImageDataUrl(file: unknown): Promise<string> {
   const blob = await toBlob(file);

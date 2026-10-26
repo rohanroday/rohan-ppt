@@ -6,6 +6,7 @@ import { SlidePreview } from "@/components/SlidePreview";
 import { WarningsPanel } from "@/components/WarningsPanel";
 import { buildPptx } from "@/lib/htmlToPptx";
 import { resolveImages } from "@/lib/imageResolver";
+import { generateAnarockDeck, OFFICE_OPTIONS_MODULE, templateFileId, type AnarockResult } from "@/lib/pptxFill/anarockFromCrm";
 import { buildDeck, deckFileName, groupTemplates, relatedModules } from "@/lib/templateEngine";
 import type { CrmRecord, GeneratedSlide, GenerationWarning, Template } from "@/lib/types";
 import { connect, describeError, type AccountSummary, type DataSource } from "@/lib/zoho";
@@ -19,6 +20,15 @@ interface Deck {
   templateName: string;
 }
 
+/** A deck made by filling a real .pptx template file (e.g. Anarock). It has no HTML slides to preview. */
+interface FileDeck extends AnarockResult {
+  account: AccountSummary;
+  templateName: string;
+  fileName: string;
+}
+
+const PPTX_MIME = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+
 export default function Page() {
   const [source, setSource] = useState<DataSource | null>(null);
   const [phase, setPhase] = useState<"loading" | "ready" | "failed">("loading");
@@ -28,6 +38,7 @@ export default function Page() {
   const [templateName, setTemplateName] = useState("");
   const [busy, setBusy] = useState<"" | "generate" | "download" | "attach">("");
   const [deck, setDeck] = useState<Deck | null>(null);
+  const [fileDeck, setFileDeck] = useState<FileDeck | null>(null);
   const [index, setIndex] = useState(0);
   const [notice, setNotice] = useState<Notice>(null);
   const [exportWarnings, setExportWarnings] = useState<GenerationWarning[]>([]);
@@ -68,6 +79,17 @@ export default function Page() {
     setNotice(null);
     setExportWarnings([]);
     try {
+      const fileId = templateFileId(template);
+      if (fileId) {
+        // The template is a real .pptx stored in CRM: fill it instead of building HTML slides.
+        const [record, options] = await Promise.all([source.getAccount(account.id), source.getRelated(account.id, OFFICE_OPTIONS_MODULE)]);
+        const result = await generateAnarockDeck({ source, account: record, options, templateFileId: fileId });
+        const name = String(record.Account_Name ?? account.name);
+        setDeck(null);
+        setFileDeck({ ...result, account: { ...account, name }, templateName: template.name, fileName: deckFileName(name, template.name) });
+        return;
+      }
+      setFileDeck(null);
       const modules = relatedModules(template);
       const failures: string[] = [];
       const [record, format, ...relatedLists] = await Promise.all([
@@ -109,6 +131,18 @@ export default function Page() {
     setBusy("download");
     setNotice(null);
     try {
+      if (fileDeck) {
+        const url = URL.createObjectURL(new Blob([new Uint8Array(fileDeck.data)], { type: PPTX_MIME }));
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileDeck.fileName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+        setNotice({ kind: "info", text: `Downloading “${fileDeck.fileName}”. If nothing downloads, CRM may be blocking downloads in widgets; use Save to Account instead.` });
+        return;
+      }
       const { pptx, fileName } = await exportPptx();
       await pptx.writeFile({ fileName, compression: true });
       setNotice({ kind: "info", text: `Downloading “${fileName}”. If nothing downloads, CRM may be blocking downloads in widgets; use Save to Account instead.` });
@@ -117,13 +151,24 @@ export default function Page() {
     } finally {
       setBusy("");
     }
-  }, [exportPptx]);
+  }, [exportPptx, fileDeck]);
 
   const attach = useCallback(async () => {
-    if (!source || !deck) return;
+    if (!source || !(deck || fileDeck)) return;
     setBusy("attach");
     setNotice(null);
     try {
+      if (fileDeck) {
+        await source.attachFile(fileDeck.account.id, fileDeck.fileName, new Blob([new Uint8Array(fileDeck.data)], { type: PPTX_MIME }));
+        setNotice({
+          kind: "success",
+          text: source.mode === "mock"
+            ? `Mock mode: “${fileDeck.fileName}” would now be attached to ${fileDeck.account.name}.`
+            : `Saved “${fileDeck.fileName}” to ${fileDeck.account.name}’s Attachments.`,
+        });
+        return;
+      }
+      if (!deck) return;
       const { pptx, fileName } = await exportPptx();
       const blob = (await pptx.write({ outputType: "blob", compression: true })) as Blob;
       await source.attachFile(deck.account.id, fileName, blob);
@@ -138,11 +183,16 @@ export default function Page() {
     } finally {
       setBusy("");
     }
-  }, [source, deck, exportPptx]);
+  }, [source, deck, fileDeck, exportPptx]);
 
   const noTemplates = phase === "ready" && templates.length === 0;
   const stale = deck && (deck.account.id !== account?.id || deck.templateName !== templateName);
-  const allWarnings = deck ? [...deck.warnings, ...exportWarnings] : [];
+  const fileStale = fileDeck && (fileDeck.account.id !== account?.id || fileDeck.templateName !== templateName);
+  const allWarnings = deck
+    ? [...deck.warnings, ...exportWarnings]
+    : fileDeck
+      ? fileDeck.warnings.map((message) => ({ slide: fileDeck.templateName, message }))
+      : [];
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-4 p-4 md:p-6">
@@ -187,7 +237,7 @@ export default function Page() {
           disabled={!canGenerate}
           className="h-9 rounded-md bg-blue-600 px-5 text-sm font-medium text-white shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300"
         >
-          {busy === "generate" ? "Generating…" : deck && !stale ? "Regenerate" : "Generate"}
+          {busy === "generate" ? "Generating…" : (deck && !stale) || (fileDeck && !fileStale) ? "Regenerate" : "Generate"}
         </button>
       </section>
 
@@ -195,8 +245,31 @@ export default function Page() {
       {phase === "loading" && <Status kind="info" text="Connecting to Zoho CRM…" />}
       {noTemplates && <Status kind="info" text="No templates found — add records to Presentation Templates." />}
       {notice && <Status kind={notice.kind} text={notice.text} onClose={() => setNotice(null)} />}
-      {stale && <Status kind="info" text="The selection changed. Click Generate to update the preview." />}
-      {deck && <WarningsPanel warnings={allWarnings} />}
+      {(stale || fileStale) && <Status kind="info" text="The selection changed. Click Generate to update the preview." />}
+      {(deck || fileDeck) && <WarningsPanel warnings={allWarnings} />}
+
+      {/* Filled template file: no slide preview is possible, so show what the deck contains */}
+      {fileDeck && (
+        <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <h2 className="text-sm font-medium text-slate-700">
+            {fileDeck.account.name} · {fileDeck.templateName} · {fileDeck.slideCount} slide{fileDeck.slideCount === 1 ? "" : "s"}
+          </h2>
+          <p className="mt-2 text-sm text-slate-600">
+            {fileDeck.conventional} conventional and {fileDeck.coworking} co-working option{fileDeck.conventional + fileDeck.coworking === 1 ? "" : "s"}.
+            The deck was filled into the customer&apos;s own PowerPoint file, so the design is unchanged. Download it to see the slides.
+          </p>
+          <div className="mt-3 flex flex-wrap items-center justify-end gap-2 border-t border-slate-100 pt-3">
+            <button type="button" onClick={attach} disabled={!!busy}
+              className="h-9 rounded-md border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50">
+              {busy === "attach" ? "Saving…" : "Save to Account"}
+            </button>
+            <button type="button" onClick={download} disabled={!!busy}
+              className="h-9 rounded-md bg-blue-600 px-4 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+              {busy === "download" ? "Preparing…" : "Download .pptx"}
+            </button>
+          </div>
+        </section>
+      )}
 
       {/* Preview */}
       {deck ? (
@@ -222,7 +295,7 @@ export default function Page() {
           </div>
         </section>
       ) : (
-        phase === "ready" && !noTemplates && (
+        phase === "ready" && !noTemplates && !fileDeck && (
           <section className="flex flex-1 items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white/60 p-10 text-center text-sm text-slate-500">
             {busy === "generate" ? "Fetching CRM data and building slides…" : "Choose an Account and a template, then click Generate to preview the slides."}
           </section>

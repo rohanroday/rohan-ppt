@@ -4,7 +4,7 @@
 // The vendored SDK always defines window.ZOHO, so "inside CRM" is detected by
 // running in an iframe, not by the SDK being present.
 
-import { fileToImageDataUrl } from "./imageData";
+import { fileToBytes, fileToImageDataUrl } from "./imageData";
 import { mockSource } from "./mock/sampleData";
 import type { CrmRecord, FieldTypes, FormatContext, TemplateRow } from "./types";
 
@@ -24,6 +24,10 @@ export interface DataSource {
   getAccount(id: string): Promise<CrmRecord>;
   /** Downloads a CRM Image Upload / File Upload file as a picture data URL (FR-25). */
   getImage(fileId: string): Promise<string>;
+  /** Downloads a CRM file as raw bytes (the .pptx template). */
+  getFileBytes(fileId: string): Promise<Uint8Array>;
+  /** The signed-in user, for the closing slide of the Anarock deck. */
+  getUserDetails(): Promise<{ name: string; email: string; phone: string }>;
   getRelated(accountId: string, module: string): Promise<CrmRecord[]>;
   getFormatContext(modules: string[]): Promise<FormatContext>;
   attachFile(accountId: string, fileName: string, file: Blob): Promise<void>;
@@ -54,7 +58,7 @@ interface ZohoSdk {
       getFile(p: { id: string }): Promise<unknown>;
     };
     CONFIG: {
-      getCurrentUser(): Promise<{ users?: { full_name?: string; date_format?: string; locale?: string }[] }>;
+      getCurrentUser(): Promise<{ users?: { full_name?: string; email?: string; phone?: string; mobile?: string; date_format?: string; locale?: string }[] }>;
       getOrgInfo(): Promise<{ org?: { currency_symbol?: string }[] }>;
     };
     META: { getFields(p: { Entity: string }): Promise<{ fields?: { api_name: string; data_type: string }[] }> };
@@ -151,6 +155,15 @@ const crmSource: DataSource = {
     return fileToImageDataUrl(await sdk().CRM.API.getFile({ id: fileId }));
   },
 
+  async getFileBytes(fileId) {
+    return fileToBytes(await sdk().CRM.API.getFile({ id: fileId }));
+  },
+
+  async getUserDetails() {
+    const me = (await sdk().CRM.CONFIG.getCurrentUser()).users?.[0];
+    return { name: me?.full_name ?? "", email: me?.email ?? "", phone: me?.phone ?? me?.mobile ?? "" };
+  },
+
   async getRelated(accountId, module) {
     const list = RELATED_LISTS[module] ?? module;
     const all: CrmRecord[] = [];
@@ -216,6 +229,7 @@ function toTemplateRow(r: CrmRecord): TemplateRow {
     Module_Name: String(r.Module_Name ?? "Accounts"),
     Slide_Order: num(r.Slide_Order),
     Created_Time: typeof r.Created_Time === "string" ? r.Created_Time : undefined,
+    Template_File: r.Template_File,
   };
 }
 

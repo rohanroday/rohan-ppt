@@ -23,6 +23,11 @@ export function fileRef(value: unknown): string {
   return typeof id === "string" || typeof id === "number" ? `${FILE_REF_PREFIX}${id}` : "";
 }
 
+/** The CRM file id of the first file in an Image/File Upload value, or "". */
+export function fileIdOf(value: unknown): string {
+  return fileRef(value).slice(FILE_REF_PREFIX.length);
+}
+
 export interface ResolveResult {
   slides: GeneratedSlide[];
   warnings: GenerationWarning[];

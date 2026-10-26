@@ -128,6 +128,8 @@ export const mockSource: DataSource = {
     return a ? delay(a) : Promise.reject(new Error("The selected Account no longer exists."));
   },
   getImage: mockPicture,
+  getFileBytes: () => Promise.reject(new Error("the Anarock template file is only available inside CRM")),
+  getUserDetails: () => delay({ name: "Demo User", email: "demo.user@example.com", phone: "+91 90000 00000" }),
   getRelated: (accountId, module) => delay(related[accountId]?.[module] ?? []),
   getFormatContext: () =>
     delay({

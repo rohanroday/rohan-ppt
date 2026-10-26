@@ -15,5 +15,10 @@ next-env.d.ts
 .env*
 .claude/settings.local.json
 
+# Customer decks (Anarock template, logos, addresses): never commit or bundle into the public build
+ppt_widget/templates/
+*.pptm
+*.pptx
+
 # Logs
 *.log
