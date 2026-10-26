@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   ANAROCK_ROLES, SUMMARY_ROWS_PER_SLIDE, buildAnarockSpecs, formatCoverDate, type AnarockInput, type AnarockOption,
 } from "../pptxFill/anarockDeck";
+import { outlineSlideXml } from "../pptxFill/outline";
 import { fillFirstTable, fillTemplate, fillTokens, fitInside, imageSize, parseDataUrl } from "../pptxFill/fillTemplate";
 
 // A 1x1 PNG and a 2x1 PNG header-only size check.
@@ -132,6 +133,19 @@ describe("fillTemplate", () => {
   it("rejects an unexpected template", async () => {
     await expect(fillTemplate(await miniTemplate(), ["only-one"], [])).rejects.toThrow(/2 slides/);
     await expect(fillTemplate(await miniTemplate(), ["one", "two"], [{ role: "zzz" }])).rejects.toThrow(/zzz/);
+  });
+});
+
+describe("outlineSlideXml", () => {
+  it("lists text boxes and tables in order, unescaped, skipping empty shapes", () => {
+    const xml = `<p:sld><p:sp><a:p><a:r><a:t>Option 1: A &amp; B</a:t></a:r></a:p></p:sp><p:sp><a:p/></p:sp>` +
+      `<p:graphicFrame>${table([row("#", "Name"), row("1", "315 LARKINS"), row("", "")])}</p:graphicFrame></p:sld>`;
+    const o = outlineSlideXml(xml, 4);
+    expect(o.title).toBe("Option 1: A & B");
+    expect(o.blocks).toEqual([
+      { kind: "text", lines: ["Option 1: A & B"] },
+      { kind: "table", rows: [["#", "Name"], ["1", "315 LARKINS"]] },
+    ]);
   });
 });
 

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AccountSearch } from "@/components/AccountSearch";
+import { FileDeckPreview } from "@/components/FileDeckPreview";
 import { SlidePreview } from "@/components/SlidePreview";
 import { WarningsPanel } from "@/components/WarningsPanel";
 import { buildPptx } from "@/lib/htmlToPptx";
@@ -25,6 +26,8 @@ interface FileDeck extends AnarockResult {
   account: AccountSummary;
   templateName: string;
   fileName: string;
+  /** Changes on every Generate, so the preview starts again at slide 1. */
+  generatedAt: number;
 }
 
 const PPTX_MIME = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
@@ -86,8 +89,11 @@ export default function Page() {
         const result = await generateAnarockDeck({ source, account: record, options, templateFileId: fileId });
         const name = String(record.Account_Name ?? account.name);
         setDeck(null);
-        setFileDeck({ ...result, account: { ...account, name }, templateName: template.name, fileName: deckFileName(name, template.name) });
+        setFileDeck({ ...result, account: { ...account, name }, templateName: template.name, fileName: deckFileName(name, template.name), generatedAt: Date.now() });
         return;
+      }
+      if (template.slides.every((s) => !s.Slide_HTML.trim())) {
+        throw new Error(`The template “${template.name}” has no slide HTML and no template file attached. Attach the .pptx in its Template File field, or add Slide HTML.`);
       }
       setFileDeck(null);
       const modules = relatedModules(template);
@@ -254,10 +260,10 @@ export default function Page() {
           <h2 className="text-sm font-medium text-slate-700">
             {fileDeck.account.name} · {fileDeck.templateName} · {fileDeck.slideCount} slide{fileDeck.slideCount === 1 ? "" : "s"}
           </h2>
-          <p className="mt-2 text-sm text-slate-600">
-            {fileDeck.conventional} conventional and {fileDeck.coworking} co-working option{fileDeck.conventional + fileDeck.coworking === 1 ? "" : "s"}.
-            The deck was filled into the customer&apos;s own PowerPoint file, so the design is unchanged. Download it to see the slides.
+          <p className="mb-3 mt-1 text-sm text-slate-600">
+            {fileDeck.conventional} conventional and {fileDeck.coworking} co-working option{fileDeck.conventional + fileDeck.coworking === 1 ? "" : "s"}, filled into the customer&apos;s own PowerPoint file.
           </p>
+          <FileDeckPreview key={fileDeck.generatedAt} outline={fileDeck.outline} />
           <div className="mt-3 flex flex-wrap items-center justify-end gap-2 border-t border-slate-100 pt-3">
             <button type="button" onClick={attach} disabled={!!busy}
               className="h-9 rounded-md border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50">

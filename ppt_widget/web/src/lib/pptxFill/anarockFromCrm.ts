@@ -6,6 +6,7 @@ import type { CrmRecord, Template } from "../types";
 import type { DataSource } from "../zoho";
 import { ANAROCK_ROLES, buildAnarockSpecs, type AnarockOption } from "./anarockDeck";
 import { fillTemplate } from "./fillTemplate";
+import { outlineSlides, type SlideOutline } from "./outline";
 
 export const OFFICE_OPTIONS_MODULE = "Office_Options";
 const CONCURRENCY = 4;
@@ -46,6 +47,8 @@ export function toAnarockOption(r: CrmRecord): AnarockOption {
 
 export interface AnarockResult {
   data: Uint8Array;
+  /** Every text value and table per slide, for checking the data before export. */
+  outline: SlideOutline[];
   warnings: string[];
   slideCount: number;
   conventional: number;
@@ -96,6 +99,11 @@ export async function generateAnarockDeck(args: {
     buildingImage: pictures.get(buildingIds[i]),
     floorImage: pictures.get(floorIds[i]),
   }));
+  if (!mapId) warnings.push("The Account has no Location Map picture, so the map slides keep the template's placeholder.");
+  opts.forEach((o) => {
+    if (!o.buildingImage) warnings.push(`${o.name}: no Building Picture, so the template placeholder is kept.`);
+    if (!o.floorImage) warnings.push(`${o.name}: no Floor Plan picture, so the template placeholder is kept.`);
+  });
   if (opts.length === 0) warnings.push("This Account has no Office Options, so the deck has only the cover and closing slides.");
 
   const specs = buildAnarockSpecs({
@@ -109,6 +117,7 @@ export async function generateAnarockDeck(args: {
   const filled = await fillTemplate(template, ANAROCK_ROLES, specs);
   return {
     data: filled.data,
+    outline: await outlineSlides(filled.data),
     warnings: [...warnings, ...filled.warnings],
     slideCount: specs.length,
     conventional: opts.filter((o) => o.kind === "conventional").length,

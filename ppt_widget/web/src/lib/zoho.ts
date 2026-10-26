@@ -125,7 +125,9 @@ const crmSource: DataSource = {
     const full = await Promise.all(
       all.map(async (r) => {
         const more = (r.$has_more as Record<string, boolean> | undefined)?.Slide_HTML;
-        if (!more) return r;
+        // A template with no HTML may be a file template; list responses can omit upload fields, so read the full record.
+        const noHtml = !r.Slide_HTML && !r.Template_File;
+        if (!more && !noHtml) return r;
         const one = records(await z.CRM.API.getRecord({ Entity: "Presentation_Templates", RecordID: r.id }));
         return one[0] ?? r;
       }),
