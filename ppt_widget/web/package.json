@@ -10,6 +10,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@aiden0z/pptx-renderer": "^1.4.0",
     "jszip": "^3.10.2",
     "next": "16.4.2",
     "pptxgenjs": "^4.0.1",

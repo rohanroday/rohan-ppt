@@ -263,7 +263,7 @@ export default function Page() {
           <p className="mb-3 mt-1 text-sm text-slate-600">
             {fileDeck.conventional} conventional and {fileDeck.coworking} co-working option{fileDeck.conventional + fileDeck.coworking === 1 ? "" : "s"}, filled into the customer&apos;s own PowerPoint file.
           </p>
-          <FileDeckPreview key={fileDeck.generatedAt} outline={fileDeck.outline} />
+          <FileDeckPreview key={fileDeck.generatedAt} data={fileDeck.data} outline={fileDeck.outline} />
           <div className="mt-3 flex flex-wrap items-center justify-end gap-2 border-t border-slate-100 pt-3">
             <button type="button" onClick={attach} disabled={!!busy}
               className="h-9 rounded-md border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50">
